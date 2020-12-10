@@ -1,0 +1,27 @@
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      force-response: true
+      force-request: true
+spring:
+  application:
+    name: dd-job-center
+  security:
+    user:
+      name: user
+      password: 123456
+      roles: admin
+  datasource:
+    url: jdbc:mysql://localhost/test?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
+# 初始化用户
+job:
+  admin:
+    username: admin
+    password: admin
