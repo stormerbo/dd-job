@@ -1,7 +1,9 @@
 package cn.ddlover.job.controller;
 
-import cn.ddlover.job.entity.Executor;
 import cn.ddlover.job.entity.Response;
+import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
+import cn.ddlover.job.service.ExecutorManageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,9 +16,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ExecutorController {
 
-  @PutMapping("executor")
-  public Response<Void> addExecutor(@RequestBody Executor executor) {
+  @Autowired
+  private ExecutorManageService executorManageService;
 
+  /**
+   * 注册 executor
+   */
+  @PutMapping("executor")
+  public Response<Void> addExecutor(@RequestBody ExecutorRegisterReq executorRegisterReq) {
+    executorManageService.addExecutor(executorRegisterReq);
     return Response.success();
   }
 }

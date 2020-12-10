@@ -38,5 +38,5 @@ public class Executor {
   /**
    * 机器地址信息，包括ip和端口
    */
-  private List<ExecutorMachineInfo> executorInfo;
+  private List<ExecutorMachine> executorMachineList;
 }

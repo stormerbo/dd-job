@@ -2,7 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cn.ddlover.job.mapper.ExecutorMapper">
   <resultMap id="baseResultMap" type="cn.ddlover.job.entity.Executor">
-
-
+    <id property="executorId" column="EXECUTOR_ID"/>
+    <result property="executorName" column="EXECUTOR_NAME"/>
+    <result property="registerType" column="REGISTER_TYPE"/>
+    <result property="desc" column="DESC"/>
+    <collection property="executorMachineList" column="EXECUTOR_ID"
+      select="cn.ddlover.job.mapper.ExecutorMachineMapper.listByExecutorId"/>
   </resultMap>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="executorId">
+    insert into executor(`EXECUTOR_NAME`, `DESC`, `REGISTER_TYPE`)
+    values (#{executorName}, #{desc}, #{registerType})
+  </insert>
+  <select id="selectByExecutorName" resultMap="baseResultMap">
+    select EXECUTOR_ID, EXECUTOR_NAME, REGISTER_TYPE, `DESC`
+    from executor
+    where EXECUTOR_NAME = #{executorName}
+    for update
+  </select>
 </mapper>
