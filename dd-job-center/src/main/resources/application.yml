@@ -26,5 +26,10 @@ job:
   admin:
     username: admin
     password: admin
+  server:
+    port: 12345
+    connect-timeout: 60
+    read-timeout: 60
+    heart-timeout: 30
 mybatis:
   mapper-locations: mapper/*.xml

@@ -1,0 +1,34 @@
+{
+  "properties": [
+    {
+      "name": "job.admin.username",
+      "type": "java.lang.String",
+      "description": "管理员账号的姓名."
+    },
+    {
+      "name": "job.admin.password",
+      "type": "java.lang.String",
+      "description": "管理员账号的密码(明文)."
+    },
+    {
+      "name": "job.server.port",
+      "type": "java.lang.Integer",
+      "description": "tcp服务注册的端口."
+    },
+    {
+      "name": "job.server.connect-timeout",
+      "type": "java.lang.Integer",
+      "description": "服务器连接超时时间，单位为秒."
+    },
+    {
+      "name": "job.server.read-timeout",
+      "type": "java.lang.Integer",
+      "description": "服务器接受数据超时时间，单位为秒."
+    },
+    {
+      "name": "job.server.heart-timeout",
+      "type": "java.lang.Integer",
+      "description": "服务器心跳超时时间，超时后会踢掉对应的machine."
+    }
+  ]
+}

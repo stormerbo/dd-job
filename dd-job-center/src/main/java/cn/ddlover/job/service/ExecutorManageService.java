@@ -2,6 +2,7 @@ package cn.ddlover.job.service;
 
 import cn.ddlover.job.entity.Executor;
 import cn.ddlover.job.entity.ExecutorMachine;
+import cn.ddlover.job.entity.Response;
 import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
 import cn.ddlover.job.mapper.ExecutorMachineMapper;
 import cn.ddlover.job.mapper.ExecutorMapper;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @date 2020/12/2 15:31
  */
 @Service
-public class ExecutorManageService {
+public class ExecutorManageService implements ExecutorService {
 
   @Autowired
   private ExecutorMapper executorMapper;
@@ -44,5 +45,11 @@ public class ExecutorManageService {
     if (!registered) {
       executorMachineMapper.insert(executorMachine);
     }
+  }
+
+  @Override
+  public Response<Void> registerExecutor(ExecutorRegisterReq executorRegisterReq) {
+    addExecutor(executorRegisterReq);
+    return Response.success();
   }
 }

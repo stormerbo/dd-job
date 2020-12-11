@@ -2,6 +2,8 @@ package cn.ddlover.job.entity.requst;
 
 import cn.ddlover.job.entity.Executor;
 import cn.ddlover.job.entity.ExecutorMachine;
+import cn.ddlover.job.entity.Job;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 

@@ -43,12 +43,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Init
   private JobTokenRepository jobTokenRepository;
   @Autowired
   private JobSessionFilter jobSessionFilter;
+  @Autowired
+  private AdminProperties adminProperties;
 
-  @Value("${job.admin.username}")
-  private String defaultUserName;
-
-  @Value("${job.admin.password}")
-  private String defaultPassword;
   @Value("${spring.application.name}")
   private String applicationName;
 
@@ -110,8 +107,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Init
   @Override
   public void afterPropertiesSet() {
     // 重置或者更新
-    if (!jobUserDetailsService.userExists(defaultUserName)) {
-      UserDetails userDetails = User.withUsername(defaultUserName).password(passwordEncoder().encode(defaultPassword)).roles(ADMIN.role).build();
+    if (!jobUserDetailsService.userExists(adminProperties.getUsername())) {
+      UserDetails userDetails = User.withUsername(adminProperties.getUsername())
+          .password(passwordEncoder().encode(adminProperties.getPassword()))
+          .roles(ADMIN.role).build();
       jobUserDetailsService.createUser(userDetails);
     }
   }
