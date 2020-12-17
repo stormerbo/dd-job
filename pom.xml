@@ -10,7 +10,7 @@
   <version>1.0-SNAPSHOT</version>
   <modules>
     <module>dd-job-api</module>
-    <module>dd-job-client</module>
+    <module>dd-job-client-spring-boot-starter</module>
     <module>dd-job-center</module>
   </modules>
   <properties>

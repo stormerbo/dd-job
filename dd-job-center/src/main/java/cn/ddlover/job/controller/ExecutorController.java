@@ -2,7 +2,7 @@ package cn.ddlover.job.controller;
 
 import cn.ddlover.job.entity.Response;
 import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
-import cn.ddlover.job.service.ExecutorManageService;
+import cn.ddlover.job.service.ExecutorManageManageServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ExecutorController {
 
   @Autowired
-  private ExecutorManageService executorManageService;
+  private ExecutorManageManageServiceImpl executorManageService;
 
   /**
    * 注册 executor

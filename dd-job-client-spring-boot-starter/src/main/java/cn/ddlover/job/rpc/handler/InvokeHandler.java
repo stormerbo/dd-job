@@ -3,7 +3,6 @@ package cn.ddlover.job.rpc.handler;
 import cn.ddlover.job.entity.rpc.RpcHeader;
 import cn.ddlover.job.entity.rpc.RpcMessage;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
@@ -12,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.util.CollectionUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author stormer.xia
@@ -20,14 +19,11 @@ import org.springframework.util.CollectionUtils;
  * @date 2020/12/11 15:27
  */
 @Slf4j
-@Sharable
-public class InvokeHandler extends ChannelInboundHandlerAdapter {
+@Component
+public class InvokeHandler extends ChannelInboundHandlerAdapter implements ApplicationContextAware {
 
   private ApplicationContext applicationContext;
 
-  public InvokeHandler(ApplicationContext applicationContext) {
-    this.applicationContext = applicationContext;
-  }
 
   /**
    * 反射调用的对应的服务
@@ -47,9 +43,9 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
   private Object doInvoke(RpcMessage<List<Object>> rpcMessage) throws Exception {
     RpcHeader rpcHeader = rpcMessage.getRpcHeader();
     String targetClass = rpcHeader.getTargetClass();
-    Class<?> clazz = Class.forName(targetClass);
-    Object bean = this.applicationContext.getBean(clazz);
+    Object bean = this.applicationContext.getBean(Class.forName(targetClass));
     Class[] paramClazz = getParamClassArr(rpcHeader.getParamClazz());
+    Class clazz = bean.getClass();
     Method method = clazz.getMethod(rpcHeader.getTargetMethod(), paramClazz);
     return method.invoke(bean, rpcMessage.getData().toArray());
   }
@@ -70,14 +66,16 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
    * 按顺序返回
    */
   private Class[] getParamClassArr(List<String> paramClassNameList) throws ClassNotFoundException {
-    if (CollectionUtils.isEmpty(paramClassNameList)) {
-      return null;
-    }
     Class[] clazzArr = new Class[paramClassNameList.size()];
     for (int i = 0; i < paramClassNameList.size(); i++) {
       Class clazz = Class.forName(paramClassNameList.get(i));
       clazzArr[i] = clazz;
     }
     return clazzArr;
+  }
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
   }
 }

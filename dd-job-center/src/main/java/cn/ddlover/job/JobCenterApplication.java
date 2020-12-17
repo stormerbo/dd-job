@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
@@ -17,9 +18,10 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @Slf4j
 @EnableWebSecurity
+@EnableAsync
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @ConfigurationPropertiesScan
-@MapperScan
+@MapperScan(basePackages = "cn.ddlover.job.mapper")
 @SpringBootApplication
 public class JobCenterApplication {
 

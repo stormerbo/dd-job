@@ -16,9 +16,14 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,20 +33,28 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class RpcServer implements InitializingBean {
+public class RpcServer implements InitializingBean, ApplicationContextAware {
+
+  private ApplicationContext applicationContext;
 
   @Autowired
   private ServerProperties serverProperties;
-
   @Autowired
-  private InvokeHandler invokeHandler;
+  Executor issueExecutor;
 
   @Override
-  public void afterPropertiesSet() throws Exception {
-    doBind();
+  public void afterPropertiesSet() {
+    issueExecutor.execute(() -> {
+      try {
+        doBind();
+      } catch (Exception e) {
+        log.error(e.getMessage());
+      }
+    });
   }
 
-  private void doBind() throws InterruptedException {
+
+  public void doBind() throws InterruptedException {
     NioEventLoopGroup bossGroup = new NioEventLoopGroup();
     NioEventLoopGroup childGroup = new NioEventLoopGroup();
     ChannelFuture channelFuture = null;
@@ -59,9 +72,10 @@ public class RpcServer implements InitializingBean {
           .childOption(ChannelOption.TCP_NODELAY, true)
           .childOption(ChannelOption.CONNECT_TIMEOUT_MILLIS, serverProperties.getConnectTimeout() * 1000)
           .option(ChannelOption.SO_TIMEOUT, 5000)
-          .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)//缓冲池
+          //缓冲池
+          .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
           .handler(new LoggingHandler(LogLevel.INFO))
-          .childHandler(new ChildChannelHandler(serverProperties.getHeartTimeout(), invokeHandler));
+          .childHandler(new ChildChannelHandler(applicationContext, serverProperties.getHeartTimeout()));
       channelFuture = serverBootstrap.bind(serverProperties.getPort()).sync();
       log.info("dd-job rpc server start successfully.Bin on port:{}", serverProperties.getPort());
       channelFuture.channel().closeFuture().sync();
@@ -71,14 +85,19 @@ public class RpcServer implements InitializingBean {
     }
   }
 
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
   private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
+    private ApplicationContext applicationContext;
     private Integer idleTime;
-    private InvokeHandler invokeHandler;
 
-    public ChildChannelHandler(Integer idleTime, InvokeHandler invokeHandler) {
+    public ChildChannelHandler(ApplicationContext applicationContext, Integer idleTime) {
+      this.applicationContext = applicationContext;
       this.idleTime = idleTime;
-      this.invokeHandler = invokeHandler;
     }
 
     @Override
@@ -88,7 +107,7 @@ public class RpcServer implements InitializingBean {
       socketChannel.pipeline().addLast("protostuff decoder", new ProtostuffDecoder());
       socketChannel.pipeline().addLast("frameEncoder", new LengthFieldPrepender(2));
       socketChannel.pipeline().addLast("protostuff encoder", new ProtostuffEncoder());
-      socketChannel.pipeline().addLast(invokeHandler);
+      socketChannel.pipeline().addLast(new InvokeHandler(applicationContext));
     }
   }
 }

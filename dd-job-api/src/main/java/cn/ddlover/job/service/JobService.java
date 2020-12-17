@@ -1,5 +1,6 @@
 package cn.ddlover.job.service;
 
+import cn.ddlover.job.annotation.RpcInvoke;
 import cn.ddlover.job.entity.Job;
 import java.util.List;
 import javax.xml.ws.Response;
@@ -9,6 +10,7 @@ import javax.xml.ws.Response;
  * @version 1.0
  * @date 2020/12/11 15:11
  */
+@RpcInvoke
 public interface JobService {
 
   /**

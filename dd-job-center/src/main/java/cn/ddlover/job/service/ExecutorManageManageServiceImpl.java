@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @date 2020/12/2 15:31
  */
 @Service
-public class ExecutorManageService implements ExecutorService {
+public class ExecutorManageManageServiceImpl implements ExecutorManageService {
 
   @Autowired
   private ExecutorMapper executorMapper;

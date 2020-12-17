@@ -1,0 +1,10 @@
+server:
+  port: 8081
+
+job:
+  client:
+    name: dd-job-demo
+    port: 12346
+    connect-timeout: 60
+    read-timeout: 60
+    server-url: localhost:12345

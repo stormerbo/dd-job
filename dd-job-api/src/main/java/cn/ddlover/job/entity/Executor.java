@@ -1,5 +1,6 @@
 package cn.ddlover.job.entity;
 
+import cn.ddlover.job.constant.RegisterTypeEnum;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +34,7 @@ public class Executor {
   /**
    * 执行器注册方式
    */
-  private Integer registerType;
+  private Integer registerType = RegisterTypeEnum.AUTO.getType();
 
   /**
    * 机器地址信息，包括ip和端口
