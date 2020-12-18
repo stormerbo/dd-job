@@ -8,7 +8,8 @@ import cn.ddlover.job.properties.ClientProperties;
 import cn.ddlover.job.rpc.encode.ProtostuffDecoder;
 import cn.ddlover.job.rpc.encode.ProtostuffEncoder;
 import cn.ddlover.job.rpc.handler.ReconnectHandler;
-import cn.ddlover.job.service.ExecutorManageService;
+import cn.ddlover.job.rpc.handler.ResponseHandler;
+import cn.ddlover.job.service.ExecutorService;
 import cn.ddlover.job.util.GlobalChannel;
 import com.google.gson.Gson;
 import io.netty.bootstrap.Bootstrap;
@@ -43,7 +44,7 @@ public class RpcClientAutoConfiguration {
   @Autowired
   private ClientProperties clientProperties;
   @Autowired
-  private ExecutorManageService executorManageService;
+  private ExecutorService executorService;
 
   @Bean
   public Bootstrap doBind(ReconnectHandler reconnectHandler) throws UnknownHostException, InterruptedException {
@@ -69,15 +70,13 @@ public class RpcClientAutoConfiguration {
     executorMachine.setIp(ia.getHostAddress());
     executorRegisterReq.setExecutor(executor);
     executorRegisterReq.setExecutorMachine(executorMachine);
-    Response<Void> voidResponse = executorManageService.registerExecutor(executorRegisterReq);
-    Gson gson = new Gson();
-    log.info("register response is {}", gson.toJson(voidResponse));
+    executorService.registerExecutor(executorRegisterReq);
   }
 
 
   private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
-    private ReconnectHandler reconnectHandler;
+    private final ReconnectHandler reconnectHandler;
 
     public ChildChannelHandler(ReconnectHandler reconnectHandler) {
       this.reconnectHandler = reconnectHandler;
@@ -90,6 +89,7 @@ public class RpcClientAutoConfiguration {
       socketChannel.pipeline().addLast("protostuff decoder", new ProtostuffDecoder());
       socketChannel.pipeline().addLast("frameEncoder", new LengthFieldPrepender(2));
       socketChannel.pipeline().addLast("protostuff encoder", new ProtostuffEncoder());
+      socketChannel.pipeline().addLast("response handler", new ResponseHandler());
     }
   }
 }

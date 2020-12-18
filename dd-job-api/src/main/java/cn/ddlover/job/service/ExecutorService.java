@@ -10,7 +10,7 @@ import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
  * @date 2020/12/11 15:10
  */
 @RpcInvoke
-public interface ExecutorManageService {
+public interface ExecutorService {
 
   /**
    * 注册执行器，以及自身的ip端口信息

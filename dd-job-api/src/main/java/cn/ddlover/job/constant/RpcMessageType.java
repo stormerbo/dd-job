@@ -13,8 +13,8 @@ import lombok.Getter;
 public enum RpcMessageType {
   HEART_BEAT_REQUEST(0),
   HEART_BEAT_RESPONSE(1),
-  EXECUTOR_REGISTER(2),
-  EXECUTOR_REGISTER_RESPONSE(3);
+  REQUEST(2),
+  RESPONSE(3);
 
   private Integer type;
 }

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @date 2020/12/2 15:31
  */
 @Service
-public class ExecutorManageManageServiceImpl implements ExecutorManageService {
+public class ExecutorManageServiceImpl implements ExecutorService {
 
   @Autowired
   private ExecutorMapper executorMapper;
@@ -39,7 +39,6 @@ public class ExecutorManageManageServiceImpl implements ExecutorManageService {
     } else {
       List<ExecutorMachine> executorMachineList = dbExecutor.getExecutorMachineList();
       registered = executorMachineList.stream().anyMatch(machine -> machine.equals(executorMachine));
-
     }
     // 判断机器是否已经入库了
     if (!registered) {

@@ -18,6 +18,11 @@ public class RpcHeader {
    */
   private Integer type;
 
+  /**
+   * 唯一的消息编号
+   */
+  private String messageId;
+
   private String targetClass;
 
   private String targetMethod;

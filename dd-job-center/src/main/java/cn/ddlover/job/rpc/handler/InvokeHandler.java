@@ -1,7 +1,9 @@
 package cn.ddlover.job.rpc.handler;
 
+import cn.ddlover.job.constant.RpcMessageType;
 import cn.ddlover.job.entity.rpc.RpcHeader;
 import cn.ddlover.job.entity.rpc.RpcMessage;
+import com.google.gson.Gson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -9,9 +11,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -23,7 +23,7 @@ import org.springframework.util.CollectionUtils;
 @Sharable
 public class InvokeHandler extends ChannelInboundHandlerAdapter {
 
-  private ApplicationContext applicationContext;
+  private final ApplicationContext applicationContext;
 
   public InvokeHandler(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
@@ -34,11 +34,20 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
    */
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
-    Object result = doInvoke(rpcMessage);
-    RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
-    Channel channel = ctx.channel();
-    channel.writeAndFlush(objectRpcMessage);
+    RpcMessage message = (RpcMessage) msg;
+    RpcHeader rpcHeader = message.getRpcHeader();
+    if (rpcHeader.getType().equals(RpcMessageType.REQUEST.getType())) {
+      RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
+      Object result = doInvoke(rpcMessage);
+      RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
+      Gson gson = new Gson();
+      log.info("server response {}", gson.toJson(objectRpcMessage));
+      Channel channel = ctx.channel();
+      channel.writeAndFlush(objectRpcMessage);
+    } else {
+      ctx.fireChannelRead(msg);
+    }
+
   }
 
   /**
@@ -59,7 +68,9 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
    */
   private RpcMessage<Object> buildResponse(RpcMessage<List<Object>> rpcMessage, Object result) {
     RpcMessage<Object> response = new RpcMessage<>();
-    response.setRpcHeader(rpcMessage.getRpcHeader());
+    RpcHeader rpcHeader = rpcMessage.getRpcHeader();
+    rpcHeader.setType(RpcMessageType.RESPONSE.getType());
+    response.setRpcHeader(rpcHeader);
     response.setData(result);
     return response;
   }
