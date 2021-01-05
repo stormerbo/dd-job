@@ -49,4 +49,21 @@ create table `EXECUTOR_MACHINE`
     `STATUS`              int(1)      not null default 0 comment '服务状态，0-掉线，1-在线',
     PRIMARY KEY (`EXECUTOR_MACHINE_ID`),
     UNIQUE INDEX `UNI_IP_PORT` (`IP`, `PORT`) USING BTREE
+);
+
+create table `JOB`
+(
+    `JOB_ID`        int(10)       NOT NULL AUTO_INCREMENT COMMENT '主键字段',
+    `EXECUTOR_ID`   int(10)       NOT NULL COMMENT '关联对应的执行器的id',
+    `JOB_NAME`      varchar(256)   NOT NULL COMMENT '任务名称',
+    `ROUTE_TYPE`    int(2)        NOT NULL COMMENT '路由策略 0-第一个，1-最后一个，2-轮询，3-随机，4-一致性hash，5-最不经常使用，6-最近最久未使用，7-故障转移，8-忙碌转移，9-分片广播',
+    `CRON`          varchar(50)   NOT NULL comment 'cron表达式',
+    `DESC`          varchar(1024) default NULL comment '任务描述',
+    `TIMEOUT`       int(10)       default NULL COMMENT '任务超时时间，单位秒',
+    `RETRY_TIME`    int(2)        default NULL COMMENT '任务失败重试次数',
+    `OWNER`         varchar(1024) NOT NULL comment '任务负责人',
+    `WARNING_EMAIL` varchar(1024) default NULL comment '任务报警邮箱',
+    `JOB_PARAM`     varchar(1024) default NULL comment '任务默认参数',
+    PRIMARY KEY (`JOB_ID`),
+    INDEX `IDX_EXECUTOR_ID` (`EXECUTOR_ID`) USING BTREE
 )

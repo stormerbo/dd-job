@@ -32,6 +32,7 @@ public class Job {
 
   /**
    * 路由策略
+   * @see cn.ddlover.job.constant.RouteTypeEnum
    */
   private Integer routeType;
   /**
@@ -68,4 +69,23 @@ public class Job {
    * 任务的参数，可选
    */
   private String jobParam;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Job job = (Job) o;
+
+    return jobName.equals(job.jobName);
+  }
+
+  @Override
+  public int hashCode() {
+    return jobName.hashCode();
+  }
 }

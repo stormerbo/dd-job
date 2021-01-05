@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
-import java.net.SocketAddress;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -30,6 +29,7 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
     this.applicationContext = applicationContext;
   }
 
+
   /**
    * 反射调用的对应的服务
    */
@@ -48,7 +48,6 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
     } else {
       ctx.fireChannelRead(msg);
     }
-
   }
 
   /**
@@ -92,4 +91,11 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
     }
     return clazzArr;
   }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    cause.printStackTrace();
+  }
+
+
 }

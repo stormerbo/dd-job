@@ -11,7 +11,9 @@ import cn.ddlover.job.rpc.handler.HeartBeatTimerHandler;
 import cn.ddlover.job.rpc.handler.ReconnectHandler;
 import cn.ddlover.job.rpc.handler.ResponseHandler;
 import cn.ddlover.job.service.ExecutorService;
+import cn.ddlover.job.service.JobService;
 import cn.ddlover.job.util.GlobalChannel;
+import cn.ddlover.job.util.JobRegistry;
 import com.google.gson.Gson;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -49,19 +51,26 @@ public class RpcClientAutoConfiguration {
   private ClientProperties clientProperties;
   @Autowired
   private ExecutorService executorService;
+  @Autowired
+  private JobService jobService;
 
   @Bean
-  public Bootstrap doBind(ReconnectHandler reconnectHandler) throws UnknownHostException, InterruptedException {
+  public Bootstrap doBind(ReconnectHandler reconnectHandler) throws InterruptedException {
     EventLoopGroup group = new NioEventLoopGroup();
     // bootstrap 可重用, 只需在TcpClient实例化的时候初始化即可.
     Bootstrap bootstrap = new Bootstrap();
-    bootstrap.group(group)
-        .channel(NioSocketChannel.class)
-        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
-        .handler(new ChildChannelHandler(reconnectHandler, clientProperties.getHeartBeatInterval()));
-    GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
-    doRegister();
-    return bootstrap;
+    try {
+      bootstrap.group(group)
+          .channel(NioSocketChannel.class)
+          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
+          .handler(new ChildChannelHandler(reconnectHandler, clientProperties.getHeartBeatInterval()));
+      GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
+      doRegister();
+      return bootstrap;
+    } catch (Exception e) {
+      return bootstrap;
+    }
+
   }
 
   private void doRegister() {
@@ -75,6 +84,7 @@ public class RpcClientAutoConfiguration {
     executorRegisterReq.setExecutor(executor);
     executorRegisterReq.setExecutorMachine(executorMachine);
     executorService.registerExecutor(executorRegisterReq);
+    jobService.registerJobs(clientProperties.getName(), JobRegistry.getAllJob());
   }
 
 
