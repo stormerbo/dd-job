@@ -23,6 +23,8 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
@@ -62,14 +64,14 @@ public class RpcClientAutoConfiguration {
     return bootstrap;
   }
 
-  private void doRegister() throws UnknownHostException {
+  private void doRegister() {
     ExecutorRegisterReq executorRegisterReq = new ExecutorRegisterReq();
     Executor executor = new Executor();
     executor.setExecutorName(clientProperties.getName());
     ExecutorMachine executorMachine = new ExecutorMachine();
-    InetAddress ia = InetAddress.getLocalHost();
+    InetSocketAddress socketAddress = (InetSocketAddress) GlobalChannel.getChannel().localAddress();
     executorMachine.setPort(clientProperties.getPort());
-    executorMachine.setIp(ia.getHostAddress());
+    executorMachine.setIp(socketAddress.getHostName());
     executorRegisterReq.setExecutor(executor);
     executorRegisterReq.setExecutorMachine(executorMachine);
     executorService.registerExecutor(executorRegisterReq);
