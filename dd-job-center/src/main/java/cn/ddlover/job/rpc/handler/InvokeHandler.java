@@ -9,6 +9,7 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
@@ -37,12 +38,12 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
     RpcMessage message = (RpcMessage) msg;
     RpcHeader rpcHeader = message.getRpcHeader();
     if (rpcHeader.getType().equals(RpcMessageType.REQUEST.getType())) {
+      Channel channel = ctx.channel();
       RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
       Object result = doInvoke(rpcMessage);
       RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
       Gson gson = new Gson();
       log.info("server response {}", gson.toJson(objectRpcMessage));
-      Channel channel = ctx.channel();
       channel.writeAndFlush(objectRpcMessage);
     } else {
       ctx.fireChannelRead(msg);

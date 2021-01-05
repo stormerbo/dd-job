@@ -27,6 +27,8 @@ public class ClientProperties {
 
   private String serverUrl;
 
+  private Integer heartBeatInterval = 5;
+
   public String getServerIp() {
     String ip = serverUrl.replace(HTTP_SCHEMA, "").replace(HTTPS_SCHEMA, "");
     ip = ip.substring(0, ip.lastIndexOf(":"));

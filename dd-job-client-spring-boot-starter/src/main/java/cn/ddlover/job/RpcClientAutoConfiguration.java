@@ -7,6 +7,7 @@ import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
 import cn.ddlover.job.properties.ClientProperties;
 import cn.ddlover.job.rpc.encode.ProtostuffDecoder;
 import cn.ddlover.job.rpc.encode.ProtostuffEncoder;
+import cn.ddlover.job.rpc.handler.HeartBeatTimerHandler;
 import cn.ddlover.job.rpc.handler.ReconnectHandler;
 import cn.ddlover.job.rpc.handler.ResponseHandler;
 import cn.ddlover.job.service.ExecutorService;
@@ -23,6 +24,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -54,7 +56,7 @@ public class RpcClientAutoConfiguration {
     bootstrap.group(group)
         .channel(NioSocketChannel.class)
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
-        .handler(new ChildChannelHandler(reconnectHandler));
+        .handler(new ChildChannelHandler(reconnectHandler, clientProperties.getHeartBeatInterval()));
     GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
     doRegister();
     return bootstrap;
@@ -77,9 +79,19 @@ public class RpcClientAutoConfiguration {
   private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
     private final ReconnectHandler reconnectHandler;
+    private HeartBeatTimerHandler heartBeatInterval;
 
     public ChildChannelHandler(ReconnectHandler reconnectHandler) {
       this.reconnectHandler = reconnectHandler;
+    }
+
+    public ChildChannelHandler(ReconnectHandler reconnectHandler, Integer heartBeatInterval) {
+      this.reconnectHandler = reconnectHandler;
+      if (Objects.isNull(heartBeatInterval) || heartBeatInterval <= 0) {
+        this.heartBeatInterval = new HeartBeatTimerHandler();
+      } else {
+        this.heartBeatInterval = new HeartBeatTimerHandler(heartBeatInterval);
+      }
     }
 
     @Override
@@ -88,6 +100,7 @@ public class RpcClientAutoConfiguration {
       socketChannel.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(65535, 0, 2, 0, 2));
       socketChannel.pipeline().addLast("protostuff decoder", new ProtostuffDecoder());
       socketChannel.pipeline().addLast("frameEncoder", new LengthFieldPrepender(2));
+      socketChannel.pipeline().addLast(heartBeatInterval);
       socketChannel.pipeline().addLast("protostuff encoder", new ProtostuffEncoder());
       socketChannel.pipeline().addLast("response handler", new ResponseHandler());
     }

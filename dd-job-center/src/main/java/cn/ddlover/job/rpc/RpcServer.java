@@ -2,6 +2,7 @@ package cn.ddlover.job.rpc;
 
 import cn.ddlover.job.rpc.encode.ProtostuffDecoder;
 import cn.ddlover.job.rpc.encode.ProtostuffEncoder;
+import cn.ddlover.job.rpc.handler.HeartBeatRequestHandler;
 import cn.ddlover.job.rpc.handler.InvokeHandler;
 import cn.ddlover.job.rpc.handler.JobIdleStateHandler;
 import io.netty.bootstrap.ServerBootstrap;
@@ -107,6 +108,7 @@ public class RpcServer implements InitializingBean, ApplicationContextAware {
       socketChannel.pipeline().addLast("protostuff decoder", new ProtostuffDecoder());
       socketChannel.pipeline().addLast("frameEncoder", new LengthFieldPrepender(2));
       socketChannel.pipeline().addLast("protostuff encoder", new ProtostuffEncoder());
+      socketChannel.pipeline().addLast(new HeartBeatRequestHandler());
       socketChannel.pipeline().addLast(new InvokeHandler(applicationContext));
     }
   }

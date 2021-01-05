@@ -24,6 +24,11 @@
       "name": "job.client.server-url",
       "type": "java.lang.String",
       "description": "dd-job-server注册的地址."
+    },
+    {
+      "name": "job.client.heart-beat-interval",
+      "type": "java.lang.Integer",
+      "description": "client端发送心跳的间隔时间，需要小于服务端超时断开服务的间隔的一半."
     }
   ]
 }

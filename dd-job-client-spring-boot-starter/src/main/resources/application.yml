@@ -4,3 +4,4 @@ job:
     connect-timeout: 60
     read-timeout: 60
     server-url: localhost:12345
+    heart-beat-interval: 5

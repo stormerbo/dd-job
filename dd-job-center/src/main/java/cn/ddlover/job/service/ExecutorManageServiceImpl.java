@@ -38,6 +38,7 @@ public class ExecutorManageServiceImpl implements ExecutorService {
       executorMapper.insert(executor);
       executorMachine.setExecutorId(executor.getExecutorId());
     } else {
+      executorMachine.setExecutorId(dbExecutor.getExecutorId());
       List<ExecutorMachine> executorMachineList = dbExecutor.getExecutorMachineList();
       registered = executorMachineList.stream().anyMatch(machine -> machine.equals(executorMachine));
     }
