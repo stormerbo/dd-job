@@ -6,6 +6,7 @@
     <result property="executorId" column="EXECUTOR_ID"/>
     <result property="ip" column="IP"/>
     <result property="port" column="PORT"/>
+    <result property="status" column="STATUS" />
   </resultMap>
 
   <insert id="insert" useGeneratedKeys="true" keyProperty="executorMachineId">
@@ -14,7 +15,7 @@
   </insert>
 
   <select id="listByExecutorId" resultMap="baseResultMap">
-    select EXECUTOR_MACHINE_ID, EXECUTOR_ID, IP, PORT
+    select EXECUTOR_MACHINE_ID, EXECUTOR_ID, IP, PORT, `STATUS`
     from EXECUTOR_MACHINE
     where EXECUTOR_ID = #{executorId}
   </select>

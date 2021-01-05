@@ -19,7 +19,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 @Slf4j
 @EnableWebSecurity
 @EnableAsync
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, jsr250Enabled=true, securedEnabled=true)
 @ConfigurationPropertiesScan
 @MapperScan(basePackages = "cn.ddlover.job.mapper")
 @SpringBootApplication

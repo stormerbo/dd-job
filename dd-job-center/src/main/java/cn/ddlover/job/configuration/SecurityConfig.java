@@ -2,6 +2,7 @@ package cn.ddlover.job.configuration;
 
 import static cn.ddlover.job.constant.Roles.ADMIN;
 
+import cn.ddlover.job.filter.LoginFilter;
 import cn.ddlover.job.service.auth.AuthenticationHandler;
 import cn.ddlover.job.service.auth.JobAuthenticationEntryPoint;
 import cn.ddlover.job.service.auth.JobSessionFilter;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -20,10 +22,11 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.web.cors.CorsUtils;
 
 /**
  * @author stormer.xia
@@ -61,6 +64,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Init
     return new BCryptPasswordEncoder();
   }
 
+  @Bean
+  public LoginFilter loginFilter() throws Exception {
+    LoginFilter loginFilter = new LoginFilter();
+    loginFilter.setAuthenticationManager(super.authenticationManager());
+    loginFilter.setAuthenticationSuccessHandler(authenticationHandler);
+    loginFilter.setAuthenticationFailureHandler(authenticationHandler);
+    return loginFilter;
+  }
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     auth.userDetailsService(jobUserDetailsService).passwordEncoder(passwordEncoder());
@@ -73,14 +84,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Init
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    http.authorizeRequests()
+    http.cors().and().authorizeRequests()
+        .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
         .antMatchers("/admin/**").hasRole(ADMIN.role)
         .anyRequest().authenticated()
         .and()
         .formLogin()
         .loginProcessingUrl("/login")
-        .successHandler(authenticationHandler)
-        .failureHandler(authenticationHandler)
         .permitAll()
         .and()
         .logout()
@@ -100,7 +110,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Init
         // 会话管理，踢掉其他用户
         .sessionManagement().maximumSessions(1)
         .and().and()
-        .addFilterAt(jobSessionFilter, ConcurrentSessionFilter.class);
+        .addFilterAt(jobSessionFilter, ConcurrentSessionFilter.class)
+        .addFilterAt(loginFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
 

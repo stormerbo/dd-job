@@ -21,7 +21,7 @@ public class JobSessionFilter extends ConcurrentSessionFilter {
 
   @Autowired
   public JobSessionFilter(SessionRegistry sessionRegistry) {
-    super(sessionRegistry, (event) -> {
+    super(sessionRegistry, event -> {
       HttpServletResponse resp = event.getResponse();
       resp.setContentType(MediaType.APPLICATION_JSON_VALUE);
       resp.setStatus(401);

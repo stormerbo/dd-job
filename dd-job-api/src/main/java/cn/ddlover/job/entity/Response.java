@@ -1,6 +1,7 @@
 package cn.ddlover.job.entity;
 
 import cn.ddlover.job.constant.ResponseCode;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,6 +22,8 @@ public class Response<T> {
    * 响应消息
    */
   private String message;
+
+  private Integer totalRecord;
 
   /**
    * 数据内容
@@ -44,6 +47,13 @@ public class Response<T> {
     this.data = data;
   }
 
+  public Response(ResponseCode responseCode, T data, Integer totalRecord) {
+    this.code = responseCode.getCode();
+    this.message = responseCode.getMessage();
+    this.data = data;
+    this.totalRecord = totalRecord;
+  }
+
   public Response(ResponseCode responseCode) {
     this.code = responseCode.getCode();
     this.message = responseCode.getMessage();
@@ -63,7 +73,11 @@ public class Response<T> {
     return new Response<>(ResponseCode.SUCCESS, data);
   }
 
-  public static  Response<Void> successWithMessage(String message) {
+  public static <T extends List<?>> Response<T> successWithListData(T data, Integer totalRecord) {
+    return new Response<>(ResponseCode.SUCCESS, data, totalRecord);
+  }
+
+  public static Response<Void> successWithMessage(String message) {
     return new Response<>(ResponseCode.SUCCESS.getCode(), message);
   }
 

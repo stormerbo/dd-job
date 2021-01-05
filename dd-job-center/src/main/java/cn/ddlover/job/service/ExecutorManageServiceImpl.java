@@ -2,6 +2,7 @@ package cn.ddlover.job.service;
 
 import cn.ddlover.job.entity.Executor;
 import cn.ddlover.job.entity.ExecutorMachine;
+import cn.ddlover.job.entity.ListExecutorReq;
 import cn.ddlover.job.entity.Response;
 import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
 import cn.ddlover.job.mapper.ExecutorMachineMapper;
@@ -50,5 +51,13 @@ public class ExecutorManageServiceImpl implements ExecutorService {
   public Response<Void> registerExecutor(ExecutorRegisterReq executorRegisterReq) {
     addExecutor(executorRegisterReq);
     return Response.success();
+  }
+
+  public List<Executor> listExecutor(ListExecutorReq listExecutorReq) {
+    return executorMapper.listExecutor(listExecutorReq);
+  }
+
+  public Integer countExecutor(ListExecutorReq listExecutorReq) {
+    return executorMapper.countExecutor(listExecutorReq);
   }
 }

@@ -10,14 +10,31 @@
       select="cn.ddlover.job.mapper.ExecutorMachineMapper.listByExecutorId"/>
   </resultMap>
 
+  <sql id="baseColumn">
+    EXECUTOR_ID, EXECUTOR_NAME, REGISTER_TYPE, `DESC`
+  </sql>
   <insert id="insert" useGeneratedKeys="true" keyProperty="executorId">
     insert into executor(`EXECUTOR_NAME`, `DESC`, `REGISTER_TYPE`)
     values (#{executorName}, #{desc}, #{registerType})
   </insert>
   <select id="selectByExecutorName" resultMap="baseResultMap">
-    select EXECUTOR_ID, EXECUTOR_NAME, REGISTER_TYPE, `DESC`
+    select
+    <include refid="baseColumn"/>
     from executor
     where EXECUTOR_NAME = #{executorName}
     for update
+  </select>
+
+  <select id="listExecutor" resultMap="baseResultMap">
+    select
+    <include refid="baseColumn"/>
+    from executor
+    <if test="dataFrom != null and dataCount!=null">
+      limit #{dataFrom}, #{dataCount}
+    </if>
+  </select>
+  <select id="countExecutor" resultType="java.lang.Integer">
+    select count(*)
+    from executor
   </select>
 </mapper>

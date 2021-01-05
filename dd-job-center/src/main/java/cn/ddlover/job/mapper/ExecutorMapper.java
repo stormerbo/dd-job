@@ -1,6 +1,8 @@
 package cn.ddlover.job.mapper;
 
 import cn.ddlover.job.entity.Executor;
+import cn.ddlover.job.entity.ListExecutorReq;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
@@ -17,4 +19,8 @@ public interface ExecutorMapper {
   int insert(Executor executor);
 
   Executor selectByExecutorName(@Param("executorName")String executorName);
+
+  List<Executor> listExecutor(ListExecutorReq listExecutorReq);
+
+  Integer countExecutor(ListExecutorReq listExecutorReq);
 }
