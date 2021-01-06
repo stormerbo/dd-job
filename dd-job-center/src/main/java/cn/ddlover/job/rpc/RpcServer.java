@@ -5,6 +5,7 @@ import cn.ddlover.job.rpc.encode.ProtostuffEncoder;
 import cn.ddlover.job.rpc.handler.HeartBeatRequestHandler;
 import cn.ddlover.job.rpc.handler.InvokeHandler;
 import cn.ddlover.job.rpc.handler.JobIdleStateHandler;
+import cn.ddlover.job.rpc.handler.ResponseHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -24,7 +25,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -110,6 +110,7 @@ public class RpcServer implements InitializingBean, ApplicationContextAware {
       socketChannel.pipeline().addLast("protostuff encoder", new ProtostuffEncoder());
       socketChannel.pipeline().addLast(new HeartBeatRequestHandler());
       socketChannel.pipeline().addLast(new InvokeHandler(applicationContext));
+      socketChannel.pipeline().addLast(new ResponseHandler());
     }
   }
 }

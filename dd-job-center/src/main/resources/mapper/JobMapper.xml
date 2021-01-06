@@ -16,7 +16,7 @@
   </resultMap>
 
   <sql id="baseColumn">
-    `EXECUTOR_ID`, `JOB_NAME`, `ROUTE_TYPE`, `CRON`,`DESC`,`TIMEOUT`, `RETRY_TIME`, `OWNER`,`WARNING_EMAIL`,`JOB_PARAM`
+    `JOB_ID`,`EXECUTOR_ID`, `JOB_NAME`, `ROUTE_TYPE`, `CRON`,`DESC`,`TIMEOUT`, `RETRY_TIME`, `OWNER`,`WARNING_EMAIL`,`JOB_PARAM`
   </sql>
 
   <insert id="insert" useGeneratedKeys="true" keyProperty="jobId">
@@ -61,5 +61,11 @@
     <include refid="baseColumn"/>
     from JOB
     where EXECUTOR_ID = #{executorId}
+  </select>
+  <select id="selectById" resultMap="baseResultMap">
+    select
+    <include refid="baseColumn"/>
+    from JOB
+    where JOB_ID = #{jobId}
   </select>
 </mapper>

@@ -29,4 +29,8 @@ public class JobRegistry {
   public static List<Job> getAllJob() {
     return JOB_REGISTRY.values().stream().map(JobHolder::getJob).collect(Collectors.toList());
   }
+
+  public static JobHolder getJobHolder(String name){
+    return JOB_REGISTRY.get(name);
+  }
 }

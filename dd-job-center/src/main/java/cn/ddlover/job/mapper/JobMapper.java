@@ -15,5 +15,7 @@ public interface JobMapper {
 
   int insert(Job job);
 
+  Job selectById(@Param("jobId")Long jobId);
+
   List<Job> listByExecutorId(@Param("executorId") Long executorId);
 }

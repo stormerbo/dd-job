@@ -17,7 +17,7 @@ public class ExponentialBackOffRetry implements ReconnectPolicy {
   private static final int DEFAULT_MAX_SLEEP_MS = Integer.MAX_VALUE;
 
   private final Random random = new Random();
-  private long baseSleepTimeMs = 5;
+  private long baseSleepTimeMs = 15;
   private int maxRetries = 10;
   private int maxSleepMs = 30;
 

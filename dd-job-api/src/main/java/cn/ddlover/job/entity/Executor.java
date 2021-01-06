@@ -1,6 +1,7 @@
 package cn.ddlover.job.entity;
 
 import cn.ddlover.job.constant.RegisterTypeEnum;
+import java.io.Serializable;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class Executor {
+public class Executor implements Serializable {
 
   /**
    * 执行器的id
@@ -40,4 +41,23 @@ public class Executor {
    * 机器地址信息，包括ip和端口
    */
   private List<ExecutorMachine> executorMachineList;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Executor executor = (Executor) o;
+
+    return executorName.equals(executor.executorName);
+  }
+
+  @Override
+  public int hashCode() {
+    return executorName.hashCode();
+  }
 }

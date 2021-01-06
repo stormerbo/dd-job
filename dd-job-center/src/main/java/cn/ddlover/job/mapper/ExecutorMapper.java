@@ -20,6 +20,8 @@ public interface ExecutorMapper {
 
   Executor selectByExecutorName(@Param("executorName")String executorName);
 
+  Executor selectByExecutorId(@Param("executorId")Long executorId);
+
   List<Executor> listExecutor(ListExecutorReq listExecutorReq);
 
   Integer countExecutor(ListExecutorReq listExecutorReq);

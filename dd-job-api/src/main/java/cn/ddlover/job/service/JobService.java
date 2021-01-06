@@ -29,5 +29,5 @@ public interface JobService {
    * @param arg 需要传递的参数
    * @return 成功或者异常
    */
-  public Response<Void> invokeJob(Job job, String arg);
+  public Response<Void> invokeJob(Long jobId, String arg) throws InterruptedException;
 }

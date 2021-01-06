@@ -3,9 +3,12 @@ package cn.ddlover.job.registrar;
 import cn.ddlover.job.annotation.JobProvider;
 import cn.ddlover.job.domain.JobHolder;
 import cn.ddlover.job.entity.Job;
+import cn.ddlover.job.entity.Response;
+import cn.ddlover.job.exception.JobProviderException;
 import cn.ddlover.job.util.JobRegistry;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.springframework.aop.framework.AopProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -29,12 +32,28 @@ public class JobBeanPostProcessor implements BeanPostProcessor {
     Map<Method, JobProvider> methodAnnotationMap = MethodIntrospector
         .selectMethods(clazz, (MetadataLookup<JobProvider>) method -> AnnotatedElementUtils.getMergedAnnotation(method, JobProvider.class));
     if (!methodAnnotationMap.isEmpty()) {
-      methodAnnotationMap.forEach((method, jobProvider) -> {
+      for (Entry<Method, JobProvider> entry : methodAnnotationMap.entrySet()) {
+        Method method = entry.getKey();
+        JobProvider jobProvider = entry.getValue();
+        checkMethod(method);
         JobHolder jobHolder = parseJob(method, jobProvider);
         JobRegistry.registryJob(jobHolder);
-      });
+      }
     }
     return bean;
+  }
+
+  private void checkMethod(Method method) {
+    Class<?>[] parameterTypes = method.getParameterTypes();
+    if (parameterTypes.length != 1) {
+      throw new JobProviderException("Job method must only 1 param");
+    }
+    if (parameterTypes[0] != String.class) {
+      throw new JobProviderException("Job method param type must be "+String.class.getName());
+    }
+    if(method.getReturnType() != Response.class) {
+      throw new JobProviderException("Job method return type must be "+Response.class.getName());
+    }
   }
 
   private JobHolder parseJob(Method method, JobProvider jobProvider) {

@@ -33,7 +33,7 @@ public class ClientRegistry {
     executor.setExecutorName(clientProperties.getName());
     ExecutorMachine executorMachine = new ExecutorMachine();
     InetSocketAddress socketAddress = (InetSocketAddress) GlobalChannel.getChannel().localAddress();
-    executorMachine.setPort(socketAddress.getPort());
+    executorMachine.setPort(clientProperties.getPort());
     executorMachine.setIp(socketAddress.getAddress().getHostAddress());
     executorRegisterReq.setExecutor(executor);
     executorRegisterReq.setExecutorMachine(executorMachine);

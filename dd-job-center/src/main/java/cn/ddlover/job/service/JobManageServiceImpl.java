@@ -11,6 +11,7 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author stormer.xia
@@ -25,6 +26,8 @@ public class JobManageServiceImpl implements JobService {
 
   @Autowired
   private JobMapper jobMapper;
+  @Autowired
+  private ClientInvoker clientInvoker;
 
   @Override
   public Response<Void> registerJobs(String executorName, List<Job> jobList) {
@@ -43,7 +46,11 @@ public class JobManageServiceImpl implements JobService {
   }
 
   @Override
-  public Response<Void> invokeJob(Job job, String arg) {
-    return null;
+  public Response<Void> invokeJob(Long jobId, String arg) throws InterruptedException {
+    Job job = jobMapper.selectById(jobId);
+    if (StringUtils.hasText(arg)) {
+      job.setJobParam(arg);
+    }
+    return clientInvoker.invoke(job);
   }
 }

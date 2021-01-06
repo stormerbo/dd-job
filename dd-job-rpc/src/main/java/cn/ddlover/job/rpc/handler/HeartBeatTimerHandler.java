@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HeartBeatTimerHandler extends ChannelInboundHandlerAdapter {
   private static final int HEARTBEAT_INTERVAL = 5;
 
-  private int heartBeatInterval;
+  private final int heartBeatInterval;
 
 
   public HeartBeatTimerHandler() {

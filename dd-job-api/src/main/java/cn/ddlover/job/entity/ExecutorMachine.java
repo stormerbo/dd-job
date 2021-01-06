@@ -1,5 +1,6 @@
 package cn.ddlover.job.entity;
 
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ExecutorMachine {
+public class ExecutorMachine implements Serializable {
 
   private Long executorMachineId;
 

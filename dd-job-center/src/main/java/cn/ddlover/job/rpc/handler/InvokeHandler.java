@@ -1,8 +1,11 @@
 package cn.ddlover.job.rpc.handler;
 
 import cn.ddlover.job.constant.RpcMessageType;
+import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
 import cn.ddlover.job.entity.rpc.RpcHeader;
 import cn.ddlover.job.entity.rpc.RpcMessage;
+import cn.ddlover.job.rpc.ClientRegistry;
+import cn.ddlover.job.service.ExecutorService;
 import com.google.gson.Gson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -29,6 +32,10 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
     this.applicationContext = applicationContext;
   }
 
+  @Override
+  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    ClientRegistry.removeChannel(ctx.channel());
+  }
 
   /**
    * 反射调用的对应的服务
@@ -42,7 +49,7 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
       log.info("request: {}", gson.toJson(message));
       Channel channel = ctx.channel();
       RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
-      Object result = doInvoke(rpcMessage);
+      Object result = doInvoke(rpcMessage, channel);
       RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
       log.info("response: {}", gson.toJson(objectRpcMessage));
       channel.writeAndFlush(objectRpcMessage);
@@ -54,13 +61,17 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
   /**
    * 匹配method ，并完成调用
    */
-  private Object doInvoke(RpcMessage<List<Object>> rpcMessage) throws Exception {
+  private Object doInvoke(RpcMessage<List<Object>> rpcMessage, Channel channel) throws Exception {
     RpcHeader rpcHeader = rpcMessage.getRpcHeader();
     String targetClass = rpcHeader.getTargetClass();
     Class<?> clazz = Class.forName(targetClass);
     Object bean = this.applicationContext.getBean(clazz);
     Class[] paramClazz = getParamClassArr(rpcHeader.getParamClazz());
     Method method = clazz.getMethod(rpcHeader.getTargetMethod(), paramClazz);
+    if ("registerExecutor".equals(method.getName()) && ExecutorService.class.getName().equals(targetClass)) {
+      ExecutorRegisterReq executorRegisterReq = (ExecutorRegisterReq) rpcMessage.getData().get(0);
+      ClientRegistry.registerChannel(channel, executorRegisterReq.getExecutor());
+    }
     return method.invoke(bean, rpcMessage.getData().toArray());
   }
 

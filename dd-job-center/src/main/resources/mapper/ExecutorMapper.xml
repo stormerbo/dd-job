@@ -37,4 +37,10 @@
     select count(*)
     from executor
   </select>
+  <select id="selectByExecutorId" resultMap="baseResultMap">
+    select
+    <include refid="baseColumn"/>
+    from executor
+    where EXECUTOR_ID = #{executorId}
+  </select>
 </mapper>

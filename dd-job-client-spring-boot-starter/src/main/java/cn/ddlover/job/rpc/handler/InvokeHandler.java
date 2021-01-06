@@ -1,8 +1,14 @@
 package cn.ddlover.job.rpc.handler;
 
+import cn.ddlover.job.constant.RpcMessageType;
+import cn.ddlover.job.domain.JobHolder;
+import cn.ddlover.job.entity.Job;
+import cn.ddlover.job.entity.Response;
 import cn.ddlover.job.entity.rpc.RpcHeader;
 import cn.ddlover.job.entity.rpc.RpcMessage;
+import cn.ddlover.job.util.JobRegistry;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
@@ -20,58 +26,52 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@Sharable
 public class InvokeHandler extends ChannelInboundHandlerAdapter implements ApplicationContextAware {
 
   private ApplicationContext applicationContext;
-
 
   /**
    * 反射调用的对应的服务
    */
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-    RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
-    Object result = doInvoke(rpcMessage);
-    RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
-    Channel channel = ctx.channel();
-    channel.writeAndFlush(objectRpcMessage);
+    RpcMessage message = (RpcMessage) msg;
+    RpcHeader rpcHeader = message.getRpcHeader();
+    if (rpcHeader.getType().equals(RpcMessageType.REQUEST.getType())) {
+      RpcMessage<List<Job>> rpcMessage = (RpcMessage<List<Job>>) msg;
+      Job job = rpcMessage.getData().get(0);
+      JobHolder jobHolder = JobRegistry.getJobHolder(job.getJobName());
+      Response<Void> result = (Response<Void>) doInvoke(jobHolder, job);
+      RpcMessage<Response<Void>> objectRpcMessage = buildResponse(rpcMessage, result);
+      Channel channel = ctx.channel();
+      channel.writeAndFlush(objectRpcMessage);
+    } else {
+      ctx.fireChannelRead(msg);
+    }
   }
 
   /**
    * 匹配method ，并完成调用
    */
-  private Object doInvoke(RpcMessage<List<Object>> rpcMessage) throws Exception {
-    RpcHeader rpcHeader = rpcMessage.getRpcHeader();
-    String targetClass = rpcHeader.getTargetClass();
-    Object bean = this.applicationContext.getBean(Class.forName(targetClass));
-    Class[] paramClazz = getParamClassArr(rpcHeader.getParamClazz());
-    Class clazz = bean.getClass();
-    Method method = clazz.getMethod(rpcHeader.getTargetMethod(), paramClazz);
-    return method.invoke(bean, rpcMessage.getData().toArray());
+  private Object doInvoke(JobHolder jobHolder, Job job) throws Exception {
+    Class<?> clazz = jobHolder.getJobClass();
+    Object bean = this.applicationContext.getBean(clazz);
+    Class[] paramClazz = new Class[]{String.class};
+    Method method = clazz.getMethod(jobHolder.getMethodName(), paramClazz);
+    return method.invoke(bean, job.getJobParam());
   }
 
   /**
    * 封装响应
    */
-  private RpcMessage<Object> buildResponse(RpcMessage<List<Object>> rpcMessage, Object result) {
-    RpcMessage<Object> response = new RpcMessage<>();
-    response.setRpcHeader(rpcMessage.getRpcHeader());
+  private RpcMessage<Response<Void>> buildResponse(RpcMessage<List<Job>> rpcMessage, Response<Void> result) {
+    RpcMessage<Response<Void>> response = new RpcMessage<>();
+    RpcHeader rpcHeader = rpcMessage.getRpcHeader();
+    rpcHeader.setType(RpcMessageType.RESPONSE.getType());
+    response.setRpcHeader(rpcHeader);
     response.setData(result);
     return response;
-  }
-
-
-  /**
-   * 获取对应方法的每个参数的参数类型
-   * 按顺序返回
-   */
-  private Class[] getParamClassArr(List<String> paramClassNameList) throws ClassNotFoundException {
-    Class[] clazzArr = new Class[paramClassNameList.size()];
-    for (int i = 0; i < paramClassNameList.size(); i++) {
-      Class clazz = Class.forName(paramClassNameList.get(i));
-      clazzArr[i] = clazz;
-    }
-    return clazzArr;
   }
 
   @Override
