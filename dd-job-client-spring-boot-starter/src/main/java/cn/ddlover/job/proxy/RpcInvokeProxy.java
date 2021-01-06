@@ -6,6 +6,7 @@ import cn.ddlover.job.entity.rpc.RpcMessage;
 import cn.ddlover.job.rpc.util.ResponseUtil;
 import cn.ddlover.job.util.GlobalChannel;
 import cn.ddlover.job.util.MessageUtil;
+import com.google.gson.Gson;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.Future;
@@ -31,9 +32,11 @@ public class RpcInvokeProxy implements MethodInterceptor {
 
   @Override
   public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+    Gson gson = new Gson();
     if (shouldInvoke(method)) {
       RpcMessage<List<Object>> rpcMessage = buildRequest(proxy, method, args);
       Channel channel = GlobalChannel.getChannel();
+      log.info("request: {}", gson.toJson(rpcMessage));
       // 发送消息
       channel.writeAndFlush(rpcMessage);
       String messageId = rpcMessage.getRpcHeader().getMessageId();

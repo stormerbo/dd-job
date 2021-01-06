@@ -1,20 +1,14 @@
 package cn.ddlover.job;
 
-import cn.ddlover.job.entity.Executor;
-import cn.ddlover.job.entity.ExecutorMachine;
-import cn.ddlover.job.entity.Response;
-import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
+import cn.ddlover.job.event.ClientStartupEvent;
 import cn.ddlover.job.properties.ClientProperties;
 import cn.ddlover.job.rpc.encode.ProtostuffDecoder;
 import cn.ddlover.job.rpc.encode.ProtostuffEncoder;
 import cn.ddlover.job.rpc.handler.HeartBeatTimerHandler;
 import cn.ddlover.job.rpc.handler.ReconnectHandler;
+import cn.ddlover.job.rpc.handler.ReconnectPolicy;
 import cn.ddlover.job.rpc.handler.ResponseHandler;
-import cn.ddlover.job.service.ExecutorService;
-import cn.ddlover.job.service.JobService;
 import cn.ddlover.job.util.GlobalChannel;
-import cn.ddlover.job.util.JobRegistry;
-import com.google.gson.Gson;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -24,14 +18,13 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -45,57 +38,41 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(ClientProperties.class)
 @ComponentScan
 @Configuration
-public class RpcClientAutoConfiguration {
+public class RpcClientAutoConfiguration implements ApplicationContextAware {
 
-  @Autowired
-  private ClientProperties clientProperties;
-  @Autowired
-  private ExecutorService executorService;
-  @Autowired
-  private JobService jobService;
+  private ApplicationContext applicationContext;
 
   @Bean
-  public Bootstrap doBind(ReconnectHandler reconnectHandler) throws InterruptedException {
+  @Autowired
+  public Bootstrap doConnect(ClientProperties clientProperties, ReconnectPolicy reconnectPolicy) {
     EventLoopGroup group = new NioEventLoopGroup();
     // bootstrap 可重用, 只需在TcpClient实例化的时候初始化即可.
     Bootstrap bootstrap = new Bootstrap();
+    ReconnectHandler reconnectHandler = new ReconnectHandler(reconnectPolicy, bootstrap, clientProperties);
+    bootstrap.group(group)
+        .channel(NioSocketChannel.class)
+        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
+        .handler(new ChildChannelHandler(reconnectHandler, clientProperties.getHeartBeatInterval()))
+        .bind(clientProperties.getPort());
     try {
-      bootstrap.group(group)
-          .channel(NioSocketChannel.class)
-          .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
-          .handler(new ChildChannelHandler(reconnectHandler, clientProperties.getHeartBeatInterval()));
       GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
-      doRegister();
-      return bootstrap;
+      applicationContext.publishEvent(new ClientStartupEvent("客户端启动完成"));
     } catch (Exception e) {
-      return bootstrap;
+      log.error(ExceptionUtils.getStackTrace(e));
     }
-
+    return bootstrap;
   }
 
-  private void doRegister() {
-    ExecutorRegisterReq executorRegisterReq = new ExecutorRegisterReq();
-    Executor executor = new Executor();
-    executor.setExecutorName(clientProperties.getName());
-    ExecutorMachine executorMachine = new ExecutorMachine();
-    InetSocketAddress socketAddress = (InetSocketAddress) GlobalChannel.getChannel().localAddress();
-    executorMachine.setPort(clientProperties.getPort());
-    executorMachine.setIp(socketAddress.getHostName());
-    executorRegisterReq.setExecutor(executor);
-    executorRegisterReq.setExecutorMachine(executorMachine);
-    executorService.registerExecutor(executorRegisterReq);
-    jobService.registerJobs(clientProperties.getName(), JobRegistry.getAllJob());
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
   }
 
 
   private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
 
     private final ReconnectHandler reconnectHandler;
-    private HeartBeatTimerHandler heartBeatInterval;
-
-    public ChildChannelHandler(ReconnectHandler reconnectHandler) {
-      this.reconnectHandler = reconnectHandler;
-    }
+    private final HeartBeatTimerHandler heartBeatInterval;
 
     public ChildChannelHandler(ReconnectHandler reconnectHandler, Integer heartBeatInterval) {
       this.reconnectHandler = reconnectHandler;

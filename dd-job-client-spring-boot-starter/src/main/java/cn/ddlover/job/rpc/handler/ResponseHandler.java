@@ -25,7 +25,7 @@ public class ResponseHandler extends ChannelInboundHandlerAdapter {
       String messageId = rpcHeader.getMessageId();
       ResponseUtil.put(messageId, rpcMessage.getData());
       Gson gson = new Gson();
-      log.info("接收到响应: {}", gson.toJson(rpcMessage));
+      log.info("repsonse: {}", gson.toJson(rpcMessage));
     } else {
       ctx.fireChannelRead(msg);
     }

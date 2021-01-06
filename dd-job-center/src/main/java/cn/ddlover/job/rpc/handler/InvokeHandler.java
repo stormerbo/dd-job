@@ -35,15 +35,16 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
    */
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    Gson gson = new Gson();
     RpcMessage message = (RpcMessage) msg;
     RpcHeader rpcHeader = message.getRpcHeader();
     if (rpcHeader.getType().equals(RpcMessageType.REQUEST.getType())) {
+      log.info("request: {}", gson.toJson(message));
       Channel channel = ctx.channel();
       RpcMessage<List<Object>> rpcMessage = (RpcMessage<List<Object>>) msg;
       Object result = doInvoke(rpcMessage);
       RpcMessage<Object> objectRpcMessage = buildResponse(rpcMessage, result);
-      Gson gson = new Gson();
-      log.info("server response {}", gson.toJson(objectRpcMessage));
+      log.info("response: {}", gson.toJson(objectRpcMessage));
       channel.writeAndFlush(objectRpcMessage);
     } else {
       ctx.fireChannelRead(msg);

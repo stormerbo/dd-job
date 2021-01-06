@@ -1,10 +1,11 @@
 package cn.ddlover.job.util;
 
+import cn.ddlover.job.domain.JobHolder;
 import cn.ddlover.job.entity.Job;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author stormer.xia
@@ -15,17 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class JobRegistry {
 
-  private static final Map<String, Job> JOB_REGISTRY = new ConcurrentHashMap<>();
+  private static final Map<String, JobHolder> JOB_REGISTRY = new ConcurrentHashMap<>();
 
-  public static void registryJob(String name, Job job) {
-    JOB_REGISTRY.put(name, job);
+  public static void registryJob(String name, JobHolder jobHolder) {
+    JOB_REGISTRY.put(name, jobHolder);
   }
 
-  public static void registryJob(Job job) {
-    JOB_REGISTRY.put(job.getJobName(), job);
+  public static void registryJob(JobHolder jobHolder) {
+    JOB_REGISTRY.put(jobHolder.getJob().getJobName(), jobHolder);
   }
 
-  public static  List<Job> getAllJob() {
-    return new ArrayList<>(JOB_REGISTRY.values());
+  public static List<Job> getAllJob() {
+    return JOB_REGISTRY.values().stream().map(JobHolder::getJob).collect(Collectors.toList());
   }
 }

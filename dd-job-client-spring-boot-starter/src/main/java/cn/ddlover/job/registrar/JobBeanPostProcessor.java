@@ -1,6 +1,7 @@
 package cn.ddlover.job.registrar;
 
 import cn.ddlover.job.annotation.JobProvider;
+import cn.ddlover.job.domain.JobHolder;
 import cn.ddlover.job.entity.Job;
 import cn.ddlover.job.util.JobRegistry;
 import java.lang.reflect.Method;
@@ -29,14 +30,14 @@ public class JobBeanPostProcessor implements BeanPostProcessor {
         .selectMethods(clazz, (MetadataLookup<JobProvider>) method -> AnnotatedElementUtils.getMergedAnnotation(method, JobProvider.class));
     if (!methodAnnotationMap.isEmpty()) {
       methodAnnotationMap.forEach((method, jobProvider) -> {
-        Job job = parseJob(method, jobProvider);
-        JobRegistry.registryJob(job);
+        JobHolder jobHolder = parseJob(method, jobProvider);
+        JobRegistry.registryJob(jobHolder);
       });
     }
     return bean;
   }
 
-  private Job parseJob(Method method, JobProvider jobProvider) {
+  private JobHolder parseJob(Method method, JobProvider jobProvider) {
     Job job = new Job();
     String name;
     if (StringUtils.hasText(jobProvider.name())) {
@@ -53,6 +54,11 @@ public class JobBeanPostProcessor implements BeanPostProcessor {
     job.setWarningEmail(jobProvider.warningEmail());
     job.setJobParam(jobProvider.param());
     job.setDesc(jobProvider.desc());
-    return job;
+
+    JobHolder jobHolder = new JobHolder();
+    jobHolder.setJob(job);
+    jobHolder.setJobClass(method.getDeclaringClass());
+    jobHolder.setMethodName(method.getName());
+    return jobHolder;
   }
 }

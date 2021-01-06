@@ -9,8 +9,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoop;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author stormer.xia
@@ -18,23 +16,24 @@ import org.springframework.stereotype.Component;
  * @date 2020/4/23 22:27
  */
 @Sharable
-@Component
 @Slf4j
 public class ReconnectHandler extends ChannelInboundHandlerAdapter {
 
   private int retries = 0;
-  @Autowired
-  private ReconnectPolicy reconnectPolicy;
-  @Autowired
-  private Bootstrap bootstrap;
-  @Autowired
-  private ClientProperties clientProperties;
+  private final ReconnectPolicy reconnectPolicy;
+  private final Bootstrap bootstrap;
+  private final ClientProperties clientProperties;
 
+  public ReconnectHandler(ReconnectPolicy reconnectPolicy, Bootstrap bootstrap, ClientProperties clientProperties) {
+    this.reconnectPolicy = reconnectPolicy;
+    this.bootstrap = bootstrap;
+    this.clientProperties = clientProperties;
+  }
 
   @Override
   public void channelActive(ChannelHandlerContext ctx) {
-    log.info("Successfully established a connection to the server.");
     retries = 0;
+    log.info("Successfully connected to the server.");
     ctx.fireChannelActive();
   }
 
@@ -56,8 +55,8 @@ public class ReconnectHandler extends ChannelInboundHandlerAdapter {
         log.info("Reconnecting ...");
         try {
           GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
-        } catch (InterruptedException e) {
-          e.printStackTrace();
+        } catch (Exception e) {
+          channelInactive(ctx);
         }
       }, sleepTimeMs, TimeUnit.MILLISECONDS);
       ctx.fireChannelInactive();
