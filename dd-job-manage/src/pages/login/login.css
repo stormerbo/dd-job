@@ -1,0 +1,23 @@
+.login-form-forgot {
+  float: right;
+}
+.ant-col-rtl .login-form-forgot {
+  float: left;
+}
+.login-form-button {
+  width: 100%;
+}
+.login-form-container{
+  width: 520px;
+  height: 480px;
+  margin: 150px auto;
+  padding: 78px;
+  box-shadow: 0 4px 31px 0 rgba(0,120,255,.12);
+  border-radius: 8px;
+}
+
+.ant-form-item{
+  padding: 10px 0;
+}
+
+

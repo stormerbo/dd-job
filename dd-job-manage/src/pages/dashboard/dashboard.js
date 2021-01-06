@@ -1,4 +1,4 @@
-import './Dashboard.less'
+import './dashboard.less'
 
 function Dashboard() {
     return (
