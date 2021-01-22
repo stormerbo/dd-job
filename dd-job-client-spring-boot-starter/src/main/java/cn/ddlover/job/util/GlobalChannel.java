@@ -3,13 +3,19 @@ package cn.ddlover.job.util;
 import cn.ddlover.job.exception.ConnectFailException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author stormer.xia
  * @version 1.0
  * @date 2020/12/11 17:19
  */
+@Slf4j
 public class GlobalChannel {
 
   private GlobalChannel() {

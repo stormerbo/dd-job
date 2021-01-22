@@ -13,7 +13,6 @@ import cn.ddlover.job.util.MessageUtil;
 import com.google.gson.Gson;
 import io.netty.channel.Channel;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
