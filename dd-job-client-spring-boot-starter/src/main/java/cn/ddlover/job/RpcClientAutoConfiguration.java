@@ -50,7 +50,7 @@ public class RpcClientAutoConfiguration implements ApplicationContextAware {
     EventLoopGroup group = new NioEventLoopGroup();
     // bootstrap 可重用, 只需在TcpClient实例化的时候初始化即可.
     Bootstrap bootstrap = new Bootstrap();
-    ReconnectHandler reconnectHandler = new ReconnectHandler(reconnectPolicy, bootstrap, clientProperties);
+    ReconnectHandler reconnectHandler = new ReconnectHandler(applicationContext,reconnectPolicy, bootstrap, clientProperties);
     bootstrap.group(group)
         .channel(NioSocketChannel.class)
         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, clientProperties.getConnectTimeout() * 1000)
@@ -71,7 +71,6 @@ public class RpcClientAutoConfiguration implements ApplicationContextAware {
 
 
   private static class ChildChannelHandler extends ChannelInitializer<SocketChannel> {
-
     private final ReconnectHandler reconnectHandler;
     private final HeartBeatTimerHandler heartBeatInterval;
     private final InvokeHandler invokeHandler;

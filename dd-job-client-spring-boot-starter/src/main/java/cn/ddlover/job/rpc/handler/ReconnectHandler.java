@@ -1,5 +1,6 @@
 package cn.ddlover.job.rpc.handler;
 
+import cn.ddlover.job.event.ClientStartupEvent;
 import cn.ddlover.job.properties.ClientProperties;
 import cn.ddlover.job.util.GlobalChannel;
 import io.netty.bootstrap.Bootstrap;
@@ -9,6 +10,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoop;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author stormer.xia
@@ -20,11 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 public class ReconnectHandler extends ChannelInboundHandlerAdapter {
 
   private int retries = 0;
+  private ApplicationContext applicationContext;
   private final ReconnectPolicy reconnectPolicy;
   private final Bootstrap bootstrap;
   private final ClientProperties clientProperties;
 
-  public ReconnectHandler(ReconnectPolicy reconnectPolicy, Bootstrap bootstrap, ClientProperties clientProperties) {
+  public ReconnectHandler(ApplicationContext applicationContext, ReconnectPolicy reconnectPolicy, Bootstrap bootstrap,
+      ClientProperties clientProperties) {
+    this.applicationContext = applicationContext;
     this.reconnectPolicy = reconnectPolicy;
     this.bootstrap = bootstrap;
     this.clientProperties = clientProperties;
@@ -52,6 +57,7 @@ public class ReconnectHandler extends ChannelInboundHandlerAdapter {
         log.info("Reconnecting ...");
         try {
           GlobalChannel.connect(bootstrap, clientProperties.getServerIp(), clientProperties.getServerPort());
+          applicationContext.publishEvent(new ClientStartupEvent("客户端启动完成"));
         } catch (Exception e) {
           channelInactive(ctx);
         }

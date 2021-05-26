@@ -21,10 +21,7 @@ public class ClientRegistry {
    * 注册channel
    */
   public static synchronized void registerChannel(Channel channel, Executor executor) {
-    List<Channel> channels = EXECUTOR_CHANNEL_MAP.get(executor);
-    if (Objects.isNull(channels)) {
-      channels = new ArrayList<>();
-    }
+    List<Channel> channels = EXECUTOR_CHANNEL_MAP.getOrDefault(executor, new ArrayList<>());
     channels.add(channel);
     EXECUTOR_CHANNEL_MAP.put(executor, channels);
   }

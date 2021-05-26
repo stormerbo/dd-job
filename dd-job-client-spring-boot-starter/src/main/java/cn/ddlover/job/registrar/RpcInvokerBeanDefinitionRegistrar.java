@@ -6,9 +6,7 @@ import cn.ddlover.job.rpc.RpcClientFactoryBean;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
@@ -75,6 +73,7 @@ public class RpcInvokerBeanDefinitionRegistrar implements ImportBeanDefinitionRe
   @Override
   public void setResourceLoader(ResourceLoader resourceLoader) {
     this.beanFactory = beanFactory;
+    this.resourceLoader = resourceLoader;
   }
 
   protected ClassPathScanningCandidateComponentProvider getScanner() {

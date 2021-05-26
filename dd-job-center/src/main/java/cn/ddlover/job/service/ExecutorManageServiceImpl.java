@@ -5,10 +5,10 @@ import cn.ddlover.job.entity.ExecutorMachine;
 import cn.ddlover.job.entity.ListExecutorReq;
 import cn.ddlover.job.entity.Response;
 import cn.ddlover.job.entity.requst.ExecutorRegisterReq;
-import cn.ddlover.job.mapper.ExecutorMachineMapper;
 import cn.ddlover.job.mapper.ExecutorMapper;
 import java.util.List;
 import java.util.Objects;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,7 @@ public class ExecutorManageServiceImpl implements ExecutorService {
   @Autowired
   private ExecutorMapper executorMapper;
   @Autowired
-  private ExecutorMachineMapper executorMachineMapper;
+  private RedissonClient client;
 
   /**
    * 添加处理器
@@ -32,19 +32,16 @@ public class ExecutorManageServiceImpl implements ExecutorService {
     Executor executor = executorRegisterReq.getExecutor();
     ExecutorMachine executorMachine = executorRegisterReq.getExecutorMachine();
     Executor dbExecutor = executorMapper.selectByExecutorName(executor.getExecutorName());
-    boolean registered = false;
     // 先判断当前执行器有没有注册，
     if (Objects.isNull(dbExecutor)) {
       executorMapper.insert(executor);
-      executorMachine.setExecutorId(executor.getExecutorId());
-    } else {
-      executorMachine.setExecutorId(dbExecutor.getExecutorId());
-      List<ExecutorMachine> executorMachineList = dbExecutor.getExecutorMachineList();
-      registered = executorMachineList.stream().anyMatch(machine -> machine.equals(executorMachine));
     }
+    executorMachine.setExecutorId(dbExecutor.getExecutorId());
+    List<ExecutorMachine> executorMachineList = client.getList("executor:list:" + executor.getExecutorName());
+    boolean registered = executorMachineList.stream().anyMatch(machine -> machine.equals(executorMachine));
     // 判断机器是否已经入库了
     if (!registered) {
-      executorMachineMapper.insert(executorMachine);
+      executorMachineList.add(executorMachine);
     }
   }
 
@@ -55,7 +52,12 @@ public class ExecutorManageServiceImpl implements ExecutorService {
   }
 
   public List<Executor> listExecutor(ListExecutorReq listExecutorReq) {
-    return executorMapper.listExecutor(listExecutorReq);
+    List<Executor> executorList = executorMapper.listExecutor(listExecutorReq);
+    executorList.forEach(executor -> {
+      List<ExecutorMachine> executorMachineList = client.getList("executor:list:" + executor.getExecutorName());
+      executor.setExecutorMachineList(executorMachineList);
+    });
+    return executorList;
   }
 
   public Integer countExecutor(ListExecutorReq listExecutorReq) {

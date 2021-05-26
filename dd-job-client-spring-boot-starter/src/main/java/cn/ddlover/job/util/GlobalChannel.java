@@ -9,6 +9,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * @author stormer.xia
@@ -24,9 +25,19 @@ public class GlobalChannel {
   private static Channel CHANNEL_INSTANCE = null;
 
   public static synchronized void connect(Bootstrap bootstrap, String ip, Integer port) throws InterruptedException {
-    Channel channel = bootstrap.connect(ip, port).await().channel();
+    ChannelFuture channelFuture = bootstrap.connect(ip, port);
+    Channel channel = channelFuture.await().channel();
     if(Objects.isNull(channel.remoteAddress())) {
-      throw new ConnectFailException("链接服务器失败");
+      log.error("连接服务器失败, 3s后重新连接。。。");
+      channelFuture.channel().eventLoop().schedule(()-> {
+        try {
+          connect(bootstrap, ip, port);
+        } catch (InterruptedException e) {
+          log.error("连接服务器异常:{}", ExceptionUtils.getStackTrace(e));
+        }
+      },5, TimeUnit.SECONDS);
+      throw new ConnectFailException("连接服务器失败");
+
     }
     GlobalChannel.setChannel(channel);
   }

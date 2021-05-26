@@ -6,8 +6,6 @@
     <result property="executorName" column="EXECUTOR_NAME"/>
     <result property="registerType" column="REGISTER_TYPE"/>
     <result property="desc" column="DESC"/>
-    <collection property="executorMachineList" column="EXECUTOR_ID"
-      select="cn.ddlover.job.mapper.ExecutorMachineMapper.listByExecutorId"/>
   </resultMap>
 
   <sql id="baseColumn">

@@ -40,17 +40,6 @@ CREATE TABLE `EXECUTOR`
     UNIQUE INDEX `UNI_EXECUTOR_NAME` (`EXECUTOR_NAME`) USING BTREE
 );
 
-create table `EXECUTOR_MACHINE`
-(
-    `EXECUTOR_MACHINE_ID` int(10)     NOT NULL AUTO_INCREMENT COMMENT '主键字段',
-    `EXECUTOR_ID`         int(10)     NOT NULL COMMENT '关联对应的执行器的id',
-    `IP`                  varchar(20) NOT NULL COMMENT '服务ip',
-    `PORT`                int(5)      NOT NULL COMMENT '注册端口',
-    `STATUS`              int(1)      not null default 0 comment '服务状态，0-掉线，1-在线',
-    PRIMARY KEY (`EXECUTOR_MACHINE_ID`),
-    UNIQUE INDEX `UNI_IP_PORT` (`IP`, `PORT`) USING BTREE
-);
-
 create table `JOB`
 (
     `JOB_ID`        int(10)       NOT NULL AUTO_INCREMENT COMMENT '主键字段',
